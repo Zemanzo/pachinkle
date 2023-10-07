@@ -1,4 +1,4 @@
-import ReconnectingWebSocket from "reconnecting-websocket";
+import ReconnectingWebSocket, { Message } from "reconnecting-websocket";
 
 export default class NetworkManager {
   private ws: any;
@@ -6,11 +6,15 @@ export default class NetworkManager {
   public physicsState: Float64Array = new Float64Array();
 
   constructor() {
-    this.ws = new ReconnectingWebSocket(`ws://${window.location.hostname}:3015/ws/gameplay`, [], {
-      minReconnectionDelay: 1000,
-      maxReconnectionDelay: 30000,
-      reconnectionDelayGrowFactor: 2
-    });
+    this.ws = new ReconnectingWebSocket(
+      `ws://${window.location.hostname}:3015/ws/gameplay`,
+      [],
+      {
+        minReconnectionDelay: 1000,
+        maxReconnectionDelay: 30000,
+        reconnectionDelayGrowFactor: 2,
+      }
+    );
     this.websocketOpen = false;
 
     this.ws.binaryType = "arraybuffer";
@@ -26,9 +30,12 @@ export default class NetworkManager {
     this.ws.addEventListener("message", (event: any) => {
       this.physicsState = new Float64Array(event.data);
       // @ts-ignore
-      document.getElementById("dev").innerHTML = this.physicsState.length * .5;
+      document.getElementById("dev").innerHTML = this.physicsState.length * 0.5;
     });
   }
 
-
+  public sendMessage(message: Message) {
+    console.log(message);
+    this.ws.send(message);
+  }
 }

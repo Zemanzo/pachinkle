@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { StyledCanvas } from './Canvas.style';
-import Renderer from './renderer';
+import React, { useEffect, useRef } from "react";
+import { StyledCanvas } from "./Canvas.style";
+import Renderer from "./renderer";
 
 function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -12,14 +12,10 @@ function Canvas() {
     }
     return () => {
       renderer?.destroy();
-    }
-  }, [canvasRef])
+    };
+  }, [canvasRef]);
 
-  return (
-    <StyledCanvas ref={canvasRef}>
-
-    </StyledCanvas>
-  );
+  return <StyledCanvas ref={canvasRef}></StyledCanvas>;
 }
 
 export default Canvas;
