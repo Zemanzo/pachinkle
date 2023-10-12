@@ -1,11 +1,14 @@
 {
-	"folders": [
-		{
-			"path": "pachinkle-server"
-		},
-		{
-			"path": "pachinkle-client"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "path": "pachinkle-server"
+    },
+    {
+      "path": "pachinkle-client"
+    },
+    {
+      "path": "pachinkle-shared"
+    }
+  ],
+  "settings": {}
 }

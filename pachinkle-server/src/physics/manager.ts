@@ -4,18 +4,21 @@
  */
 import RAPIER, { World } from "@dimforge/rapier2d-compat";
 import Ball from "./Ball";
+import Peg from "./Peg";
 
 export default class PhysicsManager {
-  public positions = new Float64Array();
+  public ballPositions = new Float64Array();
+  public pegPositions = new Float64Array();
 
   private world: World;
   private rigidBodies: RAPIER.RigidBody[] = [];
+  private pegs: Peg[] = [];
 
   constructor(onPhysicsUpdate: (physicsManager: PhysicsManager) => void) {
     this.world = new RAPIER.World({ x: 0.0, y: -9.81 });
 
     // Create the ground
-    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(100.0, 2)
+    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(100, 2)
       .setFriction(2)
       .setTranslation(0, -50);
     this.world.createCollider(groundColliderDesc);
@@ -29,12 +32,16 @@ export default class PhysicsManager {
       .setTranslation(100, 0);
     this.world.createCollider(wallRight);
 
-    setInterval(() => {
-      // Create a dynamic rigid-body.
-      const ball = new Ball(this.world);
+    for (let a = -100; a < 100; a += 6) {
+      for (let b = -30; b < 30; b += 7) {
+        this.pegs.push(new Peg(this.world, [a + (isOdd(b) ? 3 : 0), b]));
+      }
+    }
+    this.pegPositions = new Float64Array(this.pegs.length * 2);
 
-      this.rigidBodies.push(ball.rigidBody);
-    }, 500);
+    setInterval(() => {
+      this.createBall([Math.random() * 150 - 75, 60]);
+    }, 50);
 
     // Game loop. Replace by your own game loop system.
     const gameLoop = () => {
@@ -51,7 +58,13 @@ export default class PhysicsManager {
           // this.world.removeRigidBody(body);
         }
       });
-      this.positions = positions;
+      this.ballPositions = positions;
+      this.pegs.forEach((peg, i) => {
+        const [x, y] = peg.position;
+        this.pegPositions[i * 2] = x;
+        this.pegPositions[i * 2 + 1] = y;
+      });
+
       onPhysicsUpdate(this);
 
       setTimeout(gameLoop, 16);
@@ -61,8 +74,11 @@ export default class PhysicsManager {
   }
 
   createBall(position: [number, number]) {
-    console.log(position);
     const ball = new Ball(this.world, position);
     this.rigidBodies.push(ball.rigidBody);
   }
+}
+
+function isOdd(x: number) {
+  return Math.abs(x) % 2 === 1;
 }

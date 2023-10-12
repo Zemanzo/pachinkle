@@ -1,9 +1,12 @@
 import ReconnectingWebSocket, { Message } from "reconnecting-websocket";
+import { Unpackr } from "msgpackr/unpack";
+
+const unpacker = new Unpackr({ moreTypes: true });
 
 export default class NetworkManager {
   private ws: any;
   private websocketOpen: boolean;
-  public physicsState: Float64Array = new Float64Array();
+  public messageCallback: (data: any) => void = () => {};
 
   constructor() {
     this.ws = new ReconnectingWebSocket(
@@ -28,9 +31,14 @@ export default class NetworkManager {
     });
 
     this.ws.addEventListener("message", (event: any) => {
-      this.physicsState = new Float64Array(event.data);
-      // @ts-ignore
-      document.getElementById("dev").innerHTML = this.physicsState.length * 0.5;
+      if (event.data.byteLength === 0) {
+        return;
+      }
+      const data = unpacker.unpack(event.data);
+      if (!data.b || !data.p) {
+        return;
+      }
+      this.messageCallback(data);
     });
   }
 

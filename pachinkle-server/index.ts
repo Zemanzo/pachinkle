@@ -1,15 +1,21 @@
 import RAPIER from "@dimforge/rapier2d-compat";
-import NetworkManager from "./network/manager";
-import type PhysicsManager from "./physics/manager";
+import NetworkManager from "./src/network/manager";
+import type PhysicsManager from "./src/physics/manager";
+import { NETWORK_PACKET_KEYS } from "pachinkle-shared";
 
 const networkManager = new NetworkManager();
 
-RAPIER.init().then(async () => {
-  const { default: PhysicsManager } = await import("./physics/manager");
-  const onPhysicsUpdate = (physicsManager: PhysicsManager) => {
-    networkManager.data = physicsManager.positions;
+const onPhysicsUpdate = (physicsManager: PhysicsManager) => {
+  networkManager.data = {
+    [NETWORK_PACKET_KEYS.BALLS]: physicsManager.ballPositions,
+    [NETWORK_PACKET_KEYS.PEGS]: physicsManager.pegPositions,
   };
+};
+
+RAPIER.init().then(async () => {
+  const { default: PhysicsManager } = await import("./src/physics/manager");
   const physManager = new PhysicsManager(onPhysicsUpdate);
+
   networkManager.setMessageCallback((ws, message) => {
     if (typeof message !== "string") {
       const position = [

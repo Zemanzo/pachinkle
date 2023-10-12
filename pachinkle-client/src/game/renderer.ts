@@ -1,4 +1,5 @@
 import NetworkManager from "./networking";
+import { type NetworkPacket } from "pachinkle-shared";
 
 const networkManager = new NetworkManager();
 
@@ -8,6 +9,9 @@ export default class Renderer {
   private ctx: CanvasRenderingContext2D;
   private requestedFrame: number | undefined;
   private listenerRemovalFunctions: any[] = [];
+
+  private balls: Float64Array = new Float64Array();
+  private pegs: Float64Array = new Float64Array();
 
   constructor(public element: HTMLCanvasElement) {
     this.width = element.width = element.clientWidth;
@@ -27,6 +31,11 @@ export default class Renderer {
     this.listenerRemovalFunctions.push(() => {
       element.removeEventListener("click", fn, false);
     });
+
+    networkManager.messageCallback = (data: NetworkPacket) => {
+      this.balls = data.b;
+      this.pegs = data.p;
+    };
   }
 
   private clearScreen() {
@@ -43,12 +52,23 @@ export default class Renderer {
   private render(timestamp: number) {
     this.clearScreen();
     this.ctx.scale(1, -1);
-    this.ctx.fillStyle = "red";
-    for (let i = 0; i < networkManager.physicsState.length * 0.5; i++) {
-      const x = networkManager.physicsState[i * 2];
-      const y = networkManager.physicsState[i * 2 + 1];
+    for (let i = 0; i < this.balls.length * 0.5; i++) {
+      const x = this.balls[i * 2];
+      const y = this.balls[i * 2 + 1];
+      this.ctx.fillStyle = `hsl(${(y * 3) % 360}, 100%, ${
+        100 - (Math.abs(x) % 100)
+      }%)`;
       this.ctx.beginPath();
       this.ctx.arc(x, y, 0.5, 0, 2 * Math.PI);
+      this.ctx.fill();
+    }
+
+    for (let i = 0; i < this.pegs.length * 0.5; i++) {
+      const x = this.pegs[i * 2];
+      const y = this.pegs[i * 2 + 1];
+      this.ctx.fillStyle = "#333";
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, 2, 0, 2 * Math.PI);
       this.ctx.fill();
     }
 

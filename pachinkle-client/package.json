@@ -11,6 +11,8 @@
     "@types/react": "^18.2.25",
     "@types/react-dom": "^18.2.10",
     "@types/styled-components": "^5.1.28",
+    "msgpackr": "^1.9.9",
+    "pachinkle-shared": "../pachinkle-shared",
     "prettier": "^2.8.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

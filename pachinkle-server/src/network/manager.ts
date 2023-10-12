@@ -1,8 +1,11 @@
 import { WebSocketHandler } from "bun";
 import SocketsHelper from "./SocketsHelper";
+import { Packr, pack } from "msgpackr";
+
+const packer = new Packr({ moreTypes: true });
 
 export default class NetworkManager {
-  public data = new Float64Array();
+  public data: unknown;
   private socketsHelper: SocketsHelper;
 
   constructor() {
@@ -17,7 +20,8 @@ export default class NetworkManager {
 
   update() {
     if (this?.data) {
-      this.socketsHelper.emitBinary(this.data);
+      const packedData = packer.pack(this.data);
+      this.socketsHelper.emitBinary(packedData);
     }
   }
 }
