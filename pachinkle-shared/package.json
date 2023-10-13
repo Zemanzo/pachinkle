@@ -2,10 +2,17 @@
   "name": "pachinkle-shared",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "build": "bun tsc ./"
+  },
+  "main": "./dist/index.js",
+  "exports": [
+    "./dist*"
+  ],
+  "dependencies": {
+    "typescript": "5.2.2"
+  },
   "devDependencies": {
     "bun-types": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
   }
 }

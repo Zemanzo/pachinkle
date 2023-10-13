@@ -1,1 +1,1 @@
-export * from "./src/const";
+export * from "./src/const.js";
