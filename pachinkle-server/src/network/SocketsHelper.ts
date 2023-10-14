@@ -1,7 +1,5 @@
 import { ServerWebSocket, WebSocketHandler } from "bun";
 
-let websocket: ServerWebSocket<any> | null = null;
-
 type SocketHandler<TKey extends keyof WebSocketHandler> = NonNullable<
   WebSocketHandler[TKey]
 > extends (...args: any) => any

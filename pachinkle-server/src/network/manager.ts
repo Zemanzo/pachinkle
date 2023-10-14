@@ -1,11 +1,14 @@
 import { WebSocketHandler } from "bun";
 import SocketsHelper from "./SocketsHelper";
 import { Packr, pack } from "msgpackr";
+import { NetworkPacket } from "pachinkle-shared";
 
 const packer = new Packr({ moreTypes: true });
 
 export default class NetworkManager {
   public data: unknown;
+  public onUpdate?: () => NetworkPacket;
+
   private socketsHelper: SocketsHelper;
 
   constructor() {
@@ -18,10 +21,16 @@ export default class NetworkManager {
     this.socketsHelper.messageCallback = callback;
   }
 
-  update() {
-    if (this?.data) {
-      const packedData = packer.pack(this.data);
+  private update() {
+    const data = this.onUpdate?.();
+    if (data) {
+      const packedData = packer.pack(data);
       this.socketsHelper.emitBinary(packedData);
     }
+  }
+
+  sendImmediate(data: any) {
+    const packedData = packer.pack(data);
+    this.socketsHelper.emitBinary(packedData);
   }
 }

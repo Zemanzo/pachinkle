@@ -35,10 +35,9 @@ export default class NetworkManager {
         return;
       }
       const data = unpacker.unpack(event.data);
-      if (!data.b || !data.p) {
-        return;
+      if (data.p || data.b || data.m) {
+        this.messageCallback(data);
       }
-      this.messageCallback(data);
     });
   }
 

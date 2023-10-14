@@ -1,22 +1,72 @@
 import RAPIER, { World } from "@dimforge/rapier2d-compat";
-import { kMaxLength } from "buffer";
 
-export default class Peg {
-  colliderDesc = RAPIER.ColliderDesc.ball(2);
-  collider: RAPIER.Collider;
+type RapierColliderDesc = typeof RAPIER.ColliderDesc;
+
+interface Options<TShape extends "ball" | "cuboid" = "ball"> {
+  position: [x: number, y: number];
+  shape: TShape;
+  shapeArgs: Parameters<RapierColliderDesc[TShape]>;
+  variant: "default" | "objective" | "power" | "points";
+}
+
+export default class Peg<TShape extends "ball" | "cuboid"> {
+  private colliderDesc: RAPIER.ColliderDesc;
+  private collider: RAPIER.Collider;
+  private position: Options["position"];
+  private shapeArgs: Options<TShape>["shapeArgs"];
+  private shape: TShape;
+  public variant: Options["variant"];
+  private isHit = false;
+  private destroyed = false;
+
+  public onDestroy?: () => void;
+  public handle: number;
 
   constructor(
-    world: World,
-    public position: [x: number, y: number] = [0, 0],
+    private world: World,
+    options?: Options<TShape>,
   ) {
-    this.colliderDesc.setTranslation(...position);
-    this.collider = world.createCollider(this.colliderDesc);
+    const { shape, shapeArgs, position, variant } = options ?? {
+      shape: "ball" as TShape,
+      shapeArgs: [1] as Options<TShape>["shapeArgs"],
+      position: [0, 0] as Options["position"],
+      variant: "default" as Options["variant"],
+    };
 
-    setInterval(() => {
-      const [x, y] = position;
-      const newX = x + Math.sin(Date.now() * 0.001) * 0.1;
-      this.collider.setTranslation(new RAPIER.Vector2(newX, y));
-      this.position[0] = newX;
-    }, 16);
+    this.shape = shape;
+    this.shapeArgs = shapeArgs;
+    this.position = position;
+    this.variant = variant;
+
+    //@ts-ignore
+    this.colliderDesc = RAPIER.ColliderDesc[shape](...shapeArgs)
+      .setTranslation(...position)
+      .setRestitution(0.5);
+    this.collider = world.createCollider(this.colliderDesc);
+    this.handle = this.collider.handle;
+  }
+
+  serializeTransform() {
+    return new Float64Array([...this.position]);
+  }
+
+  serializeAttributes() {
+    return {
+      shapeArgs: this.shapeArgs,
+      shape: this.shape,
+      isHit: this.isHit,
+      variant: this.variant,
+      isDestroyed: this.destroyed,
+    };
+  }
+
+  onHit() {
+    this.isHit = true;
+  }
+
+  destroy() {
+    this.world.removeCollider(this.collider, false);
+    this.destroyed = true;
+    this.onDestroy?.();
   }
 }

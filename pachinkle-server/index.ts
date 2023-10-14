@@ -1,28 +1,31 @@
 import RAPIER from "@dimforge/rapier2d-compat";
 import NetworkManager from "./src/network/manager";
-import type PhysicsManager from "./src/physics/manager";
-import { NETWORK_PACKET_KEYS } from "pachinkle-shared";
+import { NETWORK_PACKET_KEYS, NetworkPacket } from "pachinkle-shared";
 
 const networkManager = new NetworkManager();
 
-const onPhysicsUpdate = (physicsManager: PhysicsManager) => {
-  networkManager.data = {
-    [NETWORK_PACKET_KEYS.BALLS]: physicsManager.ballPositions,
-    [NETWORK_PACKET_KEYS.PEGS]: physicsManager.pegPositions,
-  };
-};
-
 RAPIER.init().then(async () => {
   const { default: PhysicsManager } = await import("./src/physics/manager");
-  const physManager = new PhysicsManager(onPhysicsUpdate);
+  const physicsManager = new PhysicsManager();
+
+  networkManager.onUpdate = () => {
+    const packet: NetworkPacket = {
+      [NETWORK_PACKET_KEYS.BALL_TRANSFORMS]: physicsManager.ballPositions,
+      [NETWORK_PACKET_KEYS.PEG_TRANSFORMS]: physicsManager.pegPositions,
+      [NETWORK_PACKET_KEYS.PEG_META]: physicsManager.getPegMeta(),
+    };
+
+    return packet;
+  };
 
   networkManager.setMessageCallback((ws, message) => {
     if (typeof message !== "string") {
-      const position = [
-        message.readDoubleLE(0) * 0.1,
-        message.readDoubleLE(8) * -0.1,
-      ] as [number, number];
-      physManager.createBall(position);
+      const [x, y, angle] = [
+        message.readDoubleLE(0),
+        message.readDoubleLE(8),
+        message.readDoubleLE(16),
+      ] as [number, number, number];
+      physicsManager.createBall([x, y], angle);
     }
   });
 });
